@@ -15,15 +15,28 @@ class Commit:
     deletions: int
     
     
-def get_commits(repo_path: str) -> list[Commit]:
-    
-    """Get all commits for the repo_path and return a list of commit objects."""
+def get_commits(
+    repo_path: str,
+    since: str | None = None,
+    author: str | None = None,
+    revision: str | None = None,
+) -> list[Commit]:
+    """Get commits for repo_path, optionally filtered by revision/since/author."""
+    cmd = ["git", "log", "--numstat", "--pretty=format:COMMIT|||%H|||%an|||%ad|||%s"]
+    if since:
+        cmd.append(f"--since={since}")
+    if author:
+        cmd.append(f"--author={author}")
+    if revision:
+        cmd.append(revision)
     result = subprocess.run(
-        ["git", "log", "--numstat", "--pretty=format:COMMIT|||%H|||%an|||%ad|||%s"],
-        capture_output=True, 
+        cmd,
+        capture_output=True,
         text=True,
-        cwd=repo_path
+        cwd=repo_path,
     )
+    if result.returncode != 0:
+        return []
     raw = result.stdout
     
     chunks = raw.split("COMMIT|||")[1:]  # For skipping the first empty split
