@@ -79,12 +79,7 @@ def validate_repo(repo_path: str) -> bool:
         return False
     return result.stdout.strip().lower() == "true"
 
-    
 
-# if __name__ == "__main__":
-#     commits = get_commits(".")  # run inside a real git repo
-#     for c in commits[:5]:
-#         print(c)
 if __name__ == "__main__":
     commits = get_commits(".")
     for c in commits[:3]:
