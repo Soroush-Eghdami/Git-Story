@@ -32,10 +32,13 @@ A tiny CLI that turns any git repository's history into a beautiful terminal das
 ## ✨ What it tells you
 
 - **Volume** — total commits, insertions `+`, deletions `-`
-- **Timeline** — first → last commit date range
-- **Momentum** — longest consecutive-day committing streak
-- **Rhythm** — busiest weekday (are you a Monday warrior?)
+- **Timeline** — first -> last commit date range
+- **Momentum** — longest consecutive-day committing streak + weekly activity sparkline
+- **Rhythm** — busiest weekday *and* busiest hour (are you a midnight coder?)
 - **Hotspots** — top 5 most-changed files with bar charts
+- **People** — commits-per-author table for team repos
+- **Hygiene** — average message length + vague-message counter (`wip`, `fix`, `temp`…)
+- **Stack** — churn grouped by file extension (`.py` vs `.md` vs …)
 
 ## 🚀 Quickstart
 
@@ -48,11 +51,34 @@ python -m venv venv && ./venv/Scripts/activate  # Windows
 pip install typer rich
 
 # 3. Tell a story
-python main.py              # current directory
+python main.py                    # current directory
 python main.py /path/to/any/repo
+python main.py "D:\My Stuff\Repo" # quote paths with spaces
 ```
 
 No args? No problem — it defaults to `.`.
+
+## 🎛️ Flags
+
+```bash
+# Filter the story
+python main.py . --since "1 month ago"
+python main.py . --since "2026-01-01" --author "Alice"
+
+# Export it (paste into a PR or README)
+python main.py . --export json
+python main.py . --export md
+
+# Compare two revisions side by side
+python main.py . --compare main..dev
+```
+
+| Flag | Job |
+|------|-----|
+| `--since` | Passes `--since=` to `git log` — date, `1 month ago`, etc. |
+| `--author` | Passes `--author=` to `git log` — filters by name/email pattern |
+| `--export json\|md` | Dumps stats as JSON or Markdown instead of the rich UI |
+| `--compare A..B` | Renders two dashboards: `A` vs `B` (also accepts `...`, `,`, space) |
 
 ## 🧠 How it works
 
@@ -63,10 +89,10 @@ main.py ──▶ core.py ──▶ stats.py ──▶ display.py
 
 | File         | Job |
 |--------------|-----|
-| `core.py`    | Parses `git log --numstat` into `Commit` objects, validates repos via `git rev-parse` |
-| `stats.py`   | Aggregates `Stats`: totals, date range, streaks, weekdays, file hotspots |
-| `display.py` | Renders it all with `rich` — panels, colored tables, bar charts |
-| `main.py`    | Glues it together with `typer`: validate → analyze → render |
+| `core.py`    | Parses `git log --numstat` into `Commit` objects, validates repos, handles `--since`/`--author`/revision filters |
+| `stats.py`   | Aggregates `Stats`: totals, streaks, weekdays, hours, authors, message health, file types, weekly activity + JSON/Markdown exporters |
+| `display.py` | Renders it all with `rich` — panels, tables, hour heatmap, activity sparkline |
+| `main.py`    | Glues it together with `typer`: validate → filter → analyze → render/export/compare |
 
 ## 🛡️ Edge cases handled
 
